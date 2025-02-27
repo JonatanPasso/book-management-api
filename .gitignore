@@ -1,0 +1,48 @@
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
+
+# Logs e dados temporários
+/log/
+/tmp/
+*.log
+
+# Configuração de IDEs e sistemas operacionais
+/.idea/
+/.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Cache e arquivos temporários do Symfony
+/var/cache/
+/var/log/
+/var/sessions/
+
+# Binários
+/bin/
+node_modules/
+
+# Build do front-end (caso utilize ferramentas modernas como Webpack/Vite)
+public/build/
+/public/assets/
+
+# Arquitetura Docker (caso utilize)
+docker-compose.override.yml
+/.docker/

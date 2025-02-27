@@ -1,0 +1,67 @@
+services:
+  backend:
+    build:
+      context: .
+    container_name: book_api
+    restart: always
+    volumes:
+      - .:/var/www/html
+    networks:
+      - book_management_network
+    depends_on:
+      - db
+    environment:  # Define apenas as variáveis necessárias
+      DATABASE_URL: ${DATABASE_URL}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+  db:
+    image: mysql:8.0
+    container_name: book_db
+    restart: always
+    ports:
+      - "3306:3306"
+    networks:
+      - book_management_network
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:  # Define apenas as variáveis do banco
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  nginx:
+    image: nginx:latest
+    container_name: book_nginx
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - book_management_network
+    depends_on:
+      - backend
+
+  portainer:
+    image: portainer/portainer-ce:${PORTAINER_VERSION}
+    container_name: book_portainer
+    ports:
+      - ${PORTAINER_WEB_PORT}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/portainer:/data:rw
+    networks:
+      - book_management_network
+
+networks:
+  book_management_network:
+    name: book_management_network
+
+volumes:
+  db-data:

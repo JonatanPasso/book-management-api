@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Livros por Autor e Assunto</title>
+    <meta name="title" content="Relatório de Livros por Autor e Assunto">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 20px;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 40px; /* Espaço para o rodapé */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #0056b3;
+        }
+        .header .date {
+            font-size: 16px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #0056b3;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #dbe7f3;
+        }
+        td:last-child, td:nth-last-child(2) {
+            white-space: nowrap; /* Evita quebra de linha */
+        }
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Relatório de Livros por Autor e Assunto</h1>
+    <div class="date">{{ "now"|date("d/m/Y") }}</div>
+</div>
+
+{% set booksGrouped = {} %}
+
+{# Agrupar os livros antes de renderizar a tabela #}
+{% for book in books %}
+    {% set bookKey = book.bookTitle %}
+
+    {% if booksGrouped[bookKey] is not defined %}
+        {% set booksGrouped = booksGrouped|merge({
+            (bookKey): {
+                'title': book.bookTitle,
+                'yearPublished': book.yearPublished|default('-'),
+                'authors': [book.authorName],
+                'subjects': book.subjectName is not empty ? [book.subjectName] : [],
+                'bookPublisher': book.bookPublisher|default('Desconhecido'),
+                'bookEdition': book.bookEdition|default('-'),
+                'bookPrice': book.bookPrice is not empty and book.bookPrice != 0 ? book.bookPrice : null
+            }
+        }) %}
+    {% else %}
+        {% set existingBook = booksGrouped[bookKey] %}
+
+        {% set updatedBook = {
+            'title': existingBook.title,
+            'yearPublished': existingBook.yearPublished,
+            'authors': existingBook.authors|merge(book.authorName not in existingBook.authors ? [book.authorName] : []),
+            'subjects': existingBook.subjects|merge(book.subjectName is not empty and book.subjectName not in existingBook.subjects ? [book.subjectName] : []),
+            'bookPublisher': existingBook.bookPublisher,
+            'bookEdition': existingBook.bookEdition,
+            'bookPrice': existingBook.bookPrice
+        } %}
+
+        {% set booksGrouped = booksGrouped|merge({ (bookKey): updatedBook }) %}
+    {% endif %}
+{% endfor %}
+
+<table>
+    <thead>
+    <tr>
+        <th>Título</th>
+        <th>Ano</th>
+        <th>Autores</th>
+        <th>Assuntos</th>
+        <th>Editora</th>
+        <th style="width: 120px;">Edição</th> <!-- Ajustei o tamanho da coluna -->
+        <th style="width: 140px;">Valor</th> <!-- Ajustei o tamanho da coluna -->
+    </tr>
+    </thead>
+    <tbody>
+    {% for bookKey, book in booksGrouped %}
+        <tr>
+            <td>{{ book.title }}</td>
+            <td>{{ book.yearPublished }}</td>
+            <td>{{ book.authors|join(', ') }}</td>
+            <td>{{ book.subjects|join(', ') }}</td>
+            <td>{{ book.bookPublisher }}</td>
+            <td>
+                {% if book.bookEdition is defined and book.bookEdition is not empty %}
+                    {{ book.bookEdition }}ª edição
+                {% else %}
+                    Não disponível
+                {% endif %}
+            </td>
+            <td>
+                {% if book.bookPrice is not null %}
+                    R$ {{ book.bookPrice|number_format(2, ',', '.') }}
+                {% else %}
+                    Não disponível
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="footer">Relatório - Desafio Técnico Spassu</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.title = "Relatório de Livros por Autor e Assunto";
+    });
+</script>
+</body>
+</html>

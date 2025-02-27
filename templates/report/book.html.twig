@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Livros por Autor</title>
+    <meta name="title" content="Relatório de Livros por Autor">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 20px;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 40px; /* Espaço para o rodapé */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #0056b3;
+        }
+        .header .date {
+            font-size: 16px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #0056b3;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #dbe7f3;
+        }
+        td:last-child, td:nth-last-child(2) {
+            white-space: nowrap; /* Evita quebra de linha */
+        }
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Relatório de Livros por Autor</h1>
+    <div class="date">{{ "now"|date("d/m/Y") }}</div>
+</div>
+
+{% set authorsGrouped = {} %}
+
+{# Agrupar os livros por autor #}
+{% for book in books %}
+    {% set authorName = book.authorName %}
+    {% set subjectNames = book.subjectName ? [book.subjectName] : [] %}
+
+    {% if authorsGrouped[authorName] is not defined %}
+        {% set authorsGrouped = authorsGrouped|merge({
+            (authorName): {
+                'author': authorName,
+                'books': [{
+                    'title': book.bookTitle,
+                    'yearPublished': book.yearPublished|default('-'),
+                    'subjects': subjectNames,
+                    'bookPublisher': book.bookPublisher|default('Desconhecido'),
+                    'bookEdition': book.bookEdition|default('-'),
+                    'bookPrice': book.bookPrice is not empty and book.bookPrice != 0 ? book.bookPrice : null
+                }]
+            }
+        }) %}
+    {% else %}
+        {% set existingAuthor = authorsGrouped[authorName] %}
+        {% set updatedAuthor = {
+            'author': existingAuthor.author,
+            'books': existingAuthor.books|merge([{
+                'title': book.bookTitle,
+                'yearPublished': book.yearPublished,
+                'subjects': existingAuthor.books[0].subjects|merge(subjectNames),
+                'bookPublisher': book.bookPublisher,
+                'bookEdition': book.bookEdition,
+                'bookPrice': book.bookPrice
+            }])
+        } %}
+
+        {% set authorsGrouped = authorsGrouped|merge({ (authorName): updatedAuthor }) %}
+    {% endif %}
+{% endfor %}
+
+<table>
+    <thead>
+    <tr>
+        <th>Autor</th>
+        <th>Título</th>
+        <th>Ano</th>
+        <th>Assuntos</th>
+        <th>Editora</th>
+        <th style="width: 120px;">Edição</th>
+        <th style="width: 140px;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for authorName, author in authorsGrouped %}
+        <tr>
+            <td rowspan="{{ author.books|length }}">{{ author.author }}</td>
+            <td>{{ author.books[0].title }}</td>
+            <td>{{ author.books[0].yearPublished }}</td>
+            <td>{{ author.books[0].subjects|join(', ') }}</td>
+            <td>{{ author.books[0].bookPublisher }}</td>
+            <td>
+                {% if author.books[0].bookEdition is defined and author.books[0].bookEdition is not empty %}
+                    {{ author.books[0].bookEdition }}ª edição
+                {% else %}
+                    Não disponível
+                {% endif %}
+            </td>
+            <td>
+                {% if author.books[0].bookPrice is not null %}
+                    R$ {{ author.books[0].bookPrice|number_format(2, ',', '.') }}
+                {% else %}
+                    Não disponível
+                {% endif %}
+            </td>
+        </tr>
+        {% for book in author.books[1:] %}
+            <tr>
+                <td>{{ book.title }}</td>
+                <td>{{ book.yearPublished }}</td>
+                <td>{{ book.subjects|join(', ') }}</td>
+                <td>{{ book.bookPublisher }}</td>
+                <td>
+                    {% if book.bookEdition is defined and book.bookEdition is not empty %}
+                        {{ book.bookEdition }}ª edição
+                    {% else %}
+                        Não disponível
+                    {% endif %}
+                </td>
+                <td>
+                    {% if book.bookPrice is not null %}
+                        R$ {{ book.bookPrice|number_format(2, ',', '.') }}
+                    {% else %}
+                        Não disponível
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="footer">Relatório - Desafio Técnico Spassu</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.title = "Relatório de Livros por Autor";
+    });
+</script>
+</body>
+</html>
