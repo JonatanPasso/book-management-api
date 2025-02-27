@@ -59,7 +59,7 @@ Certifique-se de incluir e ajustar as variáveis abaixo no arquivo `.env`:
 Siga estas etapas para configurar e executar a aplicação.
 ### 1. Clone o Repositório
 ``` bash
-    git clone [https://github.com/seu-usuario/book-management-api.git](https://github.com/JonatanPasso/book-management-api.git)
+    git clone https://github.com/seu-usuario/book-management-api.git
     cd book-management-api
 ```
 ### 2. Configure as Variáveis de Ambiente
